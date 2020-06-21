@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <title>test</title>
+</head>
+<body>
+   <!--buttons for dummy data-->
+    <div class="control_group">
+        <button onclick="select('Sanitation Levy')">
+            Sanitation Levy
+        </button>
+        <button onclick="select('RSTV')">
+            RSTV
+        </button>
+        <button onclick="select('Liquor License')">
+            Liquor License
+        </button>
+        <button onclick="select('Tenement Rate')">
+           Tenement Rate
+        </button>
+        <button onclick="clear()">
+           Clear
+         </button>
+
+         <!-- empty #chart-->
+    </div>
+    <div id="chart"></div>
+
+    <style>
+       
+        .tooltip {
+        background: #eee;
+        box-shadow: 0 0 5px #999999;
+        color: #333;
+        display: none;
+        font-size: 12px;
+        left: 130px;
+        padding: 10px;
+        position: absolute;
+        text-align: center;
+        top: 95px;
+        width: 80px;
+        z-index: 10;
+        }
+
+        .legend {
+            font-size: 12px;
+        }
+
+        rect {
+            stroke-width: 2;
+        }
+
+        .control-group {
+            padding-top: 10px;
+            margin: 10px;
+        }
+    </style>
+
+    <script>
+        //dummy data
+     var data = [
+            {amount_paid: 20000, revenue_category: 'RSTV', payment_date: 'July 2019'},
+            {amount_paid: 8000, revenue_category: 'RSTV', payment_date: 'June 2019'},
+            {amount_paid: 35000, revenue_category: 'Sanitation Levy', payment_date: 'May 2019'},
+            {amount_paid: 15500, revenue_category: 'Liquor License', payment_date: 'July 2019'},
+            {amount_paid: 120000, revenue_category: 'Tenement Rate', payment_date: 'July 2019'},
+
+            {amount_paid: 15000, revenue_category: 'RSTV', payment_date: 'August 2019'},
+            {amount_paid: 16000, revenue_category: 'Sanitation Levy', payment_date: 'June 2019'},
+            {amount_paid: 3000, revenue_category: 'Sanitation Levy', payment_date: 'May 2019'},
+            {amount_paid: 25500, revenue_category: 'Liquor License', payment_date: 'July 2019'},
+            {amount_paid: 100000, revenue_category: 'Sanitation Levy', payment_date: 'August 2019'}
+            ]
+
+        // set sizes
+        var width = 360;
+        var height = 360;
+        var radius = Math.min(width, height) / 2;
+        var color = d3.scaleOrdinal(d3.schemeCategory20b);
+        var donutWidth = 75;
+        var legendSpacing = 4;
+        var legendRectSize = 18;
+        //var parseDate = d3.timeParse('%d/%m/%Y %H:%M');
+        //var formatDate = d3.timeFormat('%B %Y');
+        //d.payment_date = formatDate(parseDate(d.payment_date));
+
+    // function to "render" data
+        function render(data, revenue_category) {
+
+            // this dataset is for the nesting still working on it
+            //var dataset = d3.nest()
+                    //.key(function(d) { return d.payment_date;})
+                    //.rollup(function(d) {
+                    //return d3.sum(d, function(g) {return g.amount_paid; });})
+                    //.entries(data);
+            // end of dataset
+
+                        // radius of the donut chart
+        var arc = d3.arc()
+                    .innerRadius(radius - donutWidth)
+                    .outerRadius(radius);
+
+                        // draws the angle of the donut chart
+        var pie = d3.pie()
+                    .value(function(d) { return d.amount_paid; })
+                    .sort(data.payment_date);
+
+                        // draws the SVG
+        var svg = d3.select('#chart')
+                    //.data(pie(data.filter(function(d){return d.revenue_category == revenue_category;})))
+                    //.enter()
+                    .append('svg')
+                        .attr('width', width)
+                        .attr('height', height)
+                    .append('g')
+                        .attr('transform', 'translate(' + (width / 2) +  ',' + (height / 2) + ')');
+        
+                        // draws the chart in the SVG
+        const path = svg.selectAll('path')
+                    .data(pie(data.filter(function(d){return d.revenue_category == revenue_category;})))
+                    
+                    .enter()
+                    .append('path')
+                        .attr('d', arc)
+                        .attr('fill', function(d, i) {
+                            return color(d.data.payment_date);
+                        });
+
+                    svg.selectAll('path')
+                    .data(data.filter(function(d){return d.revenue_category == revenue_category;}
+                   
+                    )).exit().remove();
+
+                        // the legend that doesn't want to become history
+        const legend = svg.selectAll('.legend')
+                    .data(color.domain()) 
+                    .enter()
+                    .append('g')
+                        .attr('class', 'legend')
+                        .attr('transform', function(d, i) {
+                            var height =legendRectSize + legendSpacing;
+                            var offset = height * color.domain().length/2;
+                            var horz = -2 * legendRectSize;
+                            var vert =i *height - offset;
+                        return 'translate(' + horz +','+ vert + ')';
+                    });
+
+                    legend.append('rect')
+                            .attr('width', legendRectSize)
+                            .attr('height', legendRectSize)
+                            .style('fill', color)
+                            .style('stroke', color);
+                            
+                    legend.append('text')
+                            .attr('x', legendRectSize + legendSpacing)
+                            .attr('y', legendRectSize - legendSpacing)
+                            .text(function(d) { return d.toUpperCase()
+                            });
+                            console.log(legend)
+
+                    legend.selectAll('g')
+                            .data(data.filter(function(d){return d.payment_date == d.payment_date;}))
+                    legend.selectAll('g')
+                            .data(data.filter(function(d){return d.payment_date == d.payment_date;})).exit().remove()
+        };
+
+       // this is the function for "onclick", it doesn't run when i load external data
+        function select (revenue_category) {
+        render(data, revenue_category);
+        
+    }      
+    // this function is supposed to be for the "clear" button, but since i can't target the legend in the DOM...
+        function clear (revenue_category) {
+            select(legend)
+        } 
+    </script>
+
+</body>
+</html>
