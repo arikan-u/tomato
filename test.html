@@ -21,7 +21,7 @@
         <button onclick="select('Tenement Rate')">
            Tenement Rate
         </button>
-        <button onclick="clear()">
+        <button onclick="clearChart()">
            Clear
          </button>
 
@@ -170,11 +170,13 @@
 
        // this is the function for "onclick", it doesn't run when i load external data
         function select (revenue_category) {
+        d3.selectAll("svg").remove(); //removes svg first
         render(data, revenue_category);
         
     }      
     // this function is supposed to be for the "clear" button, but since i can't target the legend in the DOM...
-        function clear (revenue_category) {
+        function clearChart(revenue_category) {
+            d3.selectAll("svg").remove(); //removes all svg
             select(legend)
         } 
     </script>
